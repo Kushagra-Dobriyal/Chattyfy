@@ -78,7 +78,7 @@ export const login = async(req, res) => {
             return res.status(400).json({message:"Invalid credentials"});
         }
 
-        const matchPass=bcrypt.compare(password,user.password);
+        const matchPass = await bcrypt.compare(password, user.password);
 
         if(!matchPass){
             return res.status(400).json({message:"Invalid credentials"});

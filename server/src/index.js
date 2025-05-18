@@ -7,24 +7,28 @@ import cors from "cors";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 
-
-const app=express();
-dotenv.config(); 
-const PORT=process.env.PORT;
+const app = express();
+dotenv.config();
+const PORT = process.env.PORT;
 
 app.use(express.json());
-app.use(cors({
-     origin:"http://localhost:3000",
-     credentials:true,
-      // [credentials :true] allowing cookies and headers to be send wih the requests
-}));
 app.use(cookieParser());
 
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-app.use("/api/auth",authRoutes);
-app.use("/api/message",messageRoutes);
+app.get("/", (req, res) => {
+    res.send("Server is running!");
+});
 
-app.listen(PORT,()=>{
-    console.log("Server is running on port 3000");
+app.use("/api/auth", authRoutes);
+app.use("/api/message", messageRoutes);
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
     connectDB();
-})
+});
