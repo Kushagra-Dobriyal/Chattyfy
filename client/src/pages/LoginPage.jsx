@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useAuthStore } from '../store/useAuthStore';
 import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
 import { Link } from 'react-router-dom';
-import signupImage from '../assets/with phone black.png';
+import loginImage from '../assets/login prop.png';
 import toast from 'react-hot-toast';
 
 function LoginPage() {
@@ -150,17 +150,10 @@ function LoginPage() {
       {/* right side */}
       <div className="hidden lg:flex flex-col items-center justify-center p-4 sm:p-4 lg:p-4 animate-slide-in-right">
         <img
-          src={signupImage}
+          src={loginImage}
           alt="Sign up illustration"
           className="w-[85%] h-[85%] object-contain mx-auto rounded-[60px] animate-float  mt-[50px]"
         />
-
-        <div className='mt-[-75px] text-center animate-fade-in delay-300'>
-          <h4 className='text-2xl font-bold text-primary mb-2'>Join our community</h4>
-          <p className='text-gray-600 max-w-md mx-auto font-medium leading-relaxed'>
-            Connect with friends, share moments, and stay in touch with your loved ones.
-          </p>
-        </div>
       </div>
     </div>
   )
