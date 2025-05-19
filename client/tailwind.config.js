@@ -13,7 +13,8 @@ export default {
         'fade-in-up': 'fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)',
         'slide-in-left': 'slideInLeft 1s cubic-bezier(0.2, 0.8, 0.2, 1)',
         'slide-in-right': 'slideInRight 1s cubic-bezier(0.2, 0.8, 0.2, 1)',
-        'slide-up': 'slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        'slide-down': 'slide-down 0.5s ease-out',
+        'slide-up': 'slide-up 0.5s ease-out',
         'float': 'float 6s cubic-bezier(0.4, 0, 0.2, 1) infinite',
       },
       keyframes: {
@@ -36,10 +37,13 @@ export default {
           '60%': { opacity: '1', transform: 'translateX(-10px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
         },
+        slideDown: {
+          '0%': { transform: 'translateY(-100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
         slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
-          '60%': { opacity: '1', transform: 'translateY(-5px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          '0%': { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
@@ -50,7 +54,7 @@ export default {
   },
   plugins: [daisyui],
   daisyui: {
-    themes: ["light", "dark", "cupcake"],
+    themes: ["light", "dark", "cupcake","retro","cyberpunk"],
   },
 }
 
