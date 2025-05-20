@@ -45,8 +45,8 @@ export const useAuthStore = create((set) => ({ //set is a function you use to up
             toast.success("You have successfully signed-up");
 
         } catch (error) {
-            toast.error("Erroe,user might already exist");
-            console.log("Error at signup at store")
+            toast.error(error.response?.data?.message || "Error during signup");
+            console.log("Error at signup at store");
             console.log(error);
         } finally {
             set({ isSigningup: false });
