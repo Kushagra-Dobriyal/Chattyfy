@@ -51,11 +51,11 @@ function LoginPage() {
     if (valid) {
       login(formData);
     }
-  } 
+  }
 
 
   return (
-    <div className='min-h-screen grid lg:grid-cols-2 max-w-7xl mx-auto mt-[-100px] gap-0'>
+    <div className=' min-h-screen grid lg:grid-cols-2 max-w-7xl mx-auto mt-[-100px] gap-0'>
       {/* left side */}
       <div className="flex flex-col justify-center items-center p-4 sm:p-4 lg:p-4 animate-slide-in-left">
         <div className="w-full max-w-md space-y-6">
@@ -96,7 +96,7 @@ function LoginPage() {
             </div>
 
 
-             <div className="form-control">
+            <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">Password</span>
               </label>

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const messageSchema=new mongoose.Schema({
     senderId:{
-        //in mongoDB id are treated /defined as ObujectId....
+        //in mongoDB id are treated /defined as ObjectId....
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",
         require:true

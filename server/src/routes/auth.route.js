@@ -8,10 +8,13 @@ router.route("/signup").post(signup);
 
 router.route("/login").post(login);
 
-router.route("/logout").post(logout);
+router.route("/logout").post(logout); //method 1
 
 
-router.put("/update-profile",protectRoute,updateProfile);
+router.put("/update-profile",protectRoute,updateProfile); //method2
+
+//Syntax explainantion...
+// router.method("end/point/name/as/defined",middlewares,goal)
 
 
 router.get("/check",protectRoute,checkAuth);
