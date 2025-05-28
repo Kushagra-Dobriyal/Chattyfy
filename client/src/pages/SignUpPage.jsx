@@ -46,13 +46,16 @@ function SignUpPage() {
     return true;
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
 
     const valid=validateForm();
     
-    if(valid){
-      signup(formData);
+    if (valid) {
+      const success = await signup(formData);
+      if (success) {
+        navigate('/');
+      }
     }
   }
 

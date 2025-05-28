@@ -14,12 +14,20 @@ import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/ProfilePage';
 
 function App() {
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
   const { theme } = useThemeStore();
+
+
+
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  if (onlineUsers.length > 0) {
+    console.log({ onlineUsers })
+  }
+
 
   if (isCheckingAuth && !authUser) return (
     <div className='flex items-center justify-center h-screen'>
@@ -33,8 +41,8 @@ function App() {
       <Routes>
         <Route path="/" element={authUser?._id ? <HomePage /> : <Navigate to="/login" />} />
         <Route path='/signup' element={!authUser?._id ? <SignUpPage /> : <Navigate to="/" />} />
-        <Route path='/login' element={!authUser?._id ? <LoginPage /> : <Navigate to="/login" />} />
-        <Route path='/settings' element={<SettingsPage /> } />
+        <Route path='/login' element={!authUser?._id ? <LoginPage /> : <Navigate to="/" />} />
+        <Route path='/settings' element={<SettingsPage />} />
         <Route path='/profile' element={authUser?._id ? <ProfilePage /> : <Navigate to="/login" />} />
       </Routes>
       <Toaster />

@@ -71,9 +71,9 @@ function ProfilePage() {
           toast.error("Invalid image format");
           return;
         }
-        
+
         const response = await updateProfile({ profilePic: base64Image });
-        
+
         if (response === true) {
           setSelectedImage(base64Image);
           toast.success("Your Profile pic is updated successfully!!");

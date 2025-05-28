@@ -42,17 +42,18 @@ function LoginPage() {
     return true;
   }
 
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const valid = validateForm();
 
     if (valid) {
-      login(formData);
+      const success = await login(formData);
+      if (success) {
+        navigate('/');
+      }
     }
   }
-
 
   return (
     <div className=' min-h-screen grid lg:grid-cols-2 max-w-7xl mx-auto mt-[-100px] gap-0'>

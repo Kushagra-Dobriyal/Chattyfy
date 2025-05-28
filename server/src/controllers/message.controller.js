@@ -1,5 +1,7 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
+import cloudinary from "../lib/cloudinary.js";
+import { getRecieverSocketId, io } from "../lib/socket.js";
 
 
 
@@ -36,7 +38,7 @@ export const getMessages = async (req, res) => {
 
     // ===> $or - This is a MongoDB operator that means "match if ANY of these conditions are true"
 
-  
+
 
     res.status(200).json(messages);
 
@@ -59,13 +61,13 @@ export const sendMessage = async (req, res) => {
 
     let imageUrl;
     if (image) {
-      const uploadResponse = await cloudinary.uploader.upload(image, 
-      // {
+      const uploadResponse = await cloudinary.uploader.upload(image,
+        // {
 
-      //       folder:'chat-images',
-      //       type:'image'
-      //      }  we can do this for better storage structure in cloudinary
-      // }
+        //       folder:'chat-images',
+        //       type:'image'
+        //      }  we can do this for better storage structure in cloudinary
+        // }
       );
       imageUrl = uploadResponse.secure_url;  //coludinary optimised url
     }
@@ -81,8 +83,13 @@ export const sendMessage = async (req, res) => {
 
 
     // todo :realtime functionality goes here (Socket.io)
-    res.status(201).json(newMessage);
+    //after saving the message in the db we directly send it to the user
+    const receiverSocketId = getRecieverSocketId(receiverId)
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage)
+    }
 
+    res.status(201).json(newMessage);
 
 
   } catch (error) {

@@ -2,9 +2,11 @@ import { create } from "zustand"
 import { axiosInstance } from "../lib/axios.js"
 import toast from "react-hot-toast";
 import { ArrowUp, CopySlash, Flashlight } from "lucide-react";
-import axios from "axios";
+import { io } from 'socket.io-client'
 
-export const useAuthStore = create((set) => ({ //set is a function you use to update the state.
+const BASE_URL = "http://localhost:3000"
+
+export const useAuthStore = create((set, get) => ({ //set is a function you use to update the state.
 
     //here we will define global states
     //these states can directly be called and be used from anywwher after importing them in the file
@@ -14,6 +16,9 @@ export const useAuthStore = create((set) => ({ //set is a function you use to up
     isLoggingin: false,
     isUpdatingProfile: false,
     isCheckingAuth: true,
+    onlineUsers: [],
+    socket: null,
+
 
 
     //defining the methods...
@@ -26,6 +31,8 @@ export const useAuthStore = create((set) => ({ //set is a function you use to up
 
             set({ authUser: res.data })
             //On success, the user's data is stored in authUser
+
+            get().connectSocket()
 
         } catch (error) {
             set({ authUser: null });
@@ -44,6 +51,8 @@ export const useAuthStore = create((set) => ({ //set is a function you use to up
             set({ authUser: res.data });
             toast.success("You have successfully signed-up");
 
+            get().connectSocket()
+
         } catch (error) {
             toast.error(error.response?.data?.message || "Error during signup");
             console.log("Error at signup at store");
@@ -59,6 +68,8 @@ export const useAuthStore = create((set) => ({ //set is a function you use to up
             await axiosInstance.post("/auth/logout");
             set({ authUser: null });
             toast.success("You have logged out");
+            get().disconnectSocket();
+
         } catch (error) {
             toast.success("Oops!!,something went wrong");
             console.log("error form the logout func in store")
@@ -72,6 +83,9 @@ export const useAuthStore = create((set) => ({ //set is a function you use to up
             const res = await axiosInstance.post("/auth/login", data);
             set({ authUser: res.data });
             toast.success(`Welcome back ${res.data.fullName}`);
+
+            get().connectSocket()
+
         } catch (error) {
             toast.error(error.response?.data?.message || "Login failed");
             console.log("The error is in login in store");
@@ -98,10 +112,47 @@ export const useAuthStore = create((set) => ({ //set is a function you use to up
         } finally {
             set({ isUpdatingProfile: false })
         }
+    },
+
+
+    connectSocket: () => {
+        const { authUser } = get();
+        // If already connected or no auth user, return
+        if (!authUser || get().socket?.connected) return;
+
+        // Disconnect any existing socket before creating a new one
+        if (get().socket) {
+            get().socket.disconnect();
+        }
+
+        const socket = io(BASE_URL, {
+            query: {
+                userId: authUser._id,
+            },
+        });
+
+        socket.connect();
+        set({ socket: socket });
+
+        socket.on("getOnlineUsers", (users) => {
+            set({ onlineUsers: users });
+        });
+
+        // Clean up socket on unmount
+        return () => {
+            if (socket) {
+                socket.disconnect();
+            }
+        };
+    },
+
+    disconnectSocket: () => {
+        const socket = get().socket;
+        if (socket?.connected) {
+            socket.disconnect();
+            set({ socket: null, onlineUsers: [] });
+        }
     }
-
-
-
 
 
 }))

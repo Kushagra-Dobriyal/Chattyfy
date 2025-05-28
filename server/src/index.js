@@ -5,9 +5,10 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 
 import authRoutes from "./routes/auth.route.js";
-import messageRoutes from "./routes/message.route.js";
+import messageRoutes from "./routes/message.route.js"
+import{app,server} from './lib/socket.js'
 
-const app = express();
+
 dotenv.config();
 const PORT = process.env.PORT;
 
@@ -30,7 +31,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 //These two route classes can be implemented here too but for better code structure we will mwke it int different folder as Routes...
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     connectDB();
 });
