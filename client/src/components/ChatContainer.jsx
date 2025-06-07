@@ -71,7 +71,7 @@ function ChatContainer() {
       <ChatHeader />
       <div className='flex-1 overflow-y-auto'>
         <div className='p-4 space-y-4'>
-          {deleteCheck ? <DeleteInterface /> :
+          {deleteCheck ? <DeleteInterface message={messageToDelete}/> :
             messages.map((message) => (
               <div key={message._id}
                 className={`chat group ${message.senderId === authUser._id ? 'chat-end' : 'chat-start'}`}
