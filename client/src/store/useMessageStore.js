@@ -12,6 +12,7 @@ export const useMessageStore = create((set, get) => ({
     isSendingImage: false,
     isTyping: false,
     typingTimeout: null,
+    deleteCheck:false,
 
     getUsers: async () => {
         set({ isLoadingUsers: true })
@@ -105,5 +106,9 @@ export const useMessageStore = create((set, get) => ({
         if (socket?.connected) {
             socket.off("newMessage");
         }
-    }
+    },
+
+    toggleDeleteCheck:()=>{
+        set((state) => ({ deleteCheck: !state.deleteCheck }))
+    },
 }))
