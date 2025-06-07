@@ -10,7 +10,6 @@ export const useMessageStore = create((set, get) => ({
     isLoadingUsers: true,
     isMessagesLoading: false,
     isSendingImage: false,
-
     isTyping: false,
     typingTimeout: null,
 
@@ -19,10 +18,8 @@ export const useMessageStore = create((set, get) => ({
         try {
             const response = await axiosInstance.get("/messages/users");
             set({ users: response.data });
-
         } catch (error) {
-            toast.error(error.response.data.messages)
-
+            toast.error(error.response?.data?.message || "Failed to fetch users")
         } finally {
             set({ isLoadingUsers: false })
         }
@@ -33,83 +30,80 @@ export const useMessageStore = create((set, get) => ({
         try {
             const response = await axiosInstance.get(`/messages/${userId}`);
             set({ messages: response.data })
-
         } catch (error) {
-            toast.error(error.response.data.messages);
+            toast.error(error.response?.data?.message || "Failed to fetch messages");
         } finally {
             set({ isMessagesLoading: false })
         }
-
     },
 
-    setSelectedUser: (selectedUser) => { set({ selectedUser }) },
-
+    setSelectedUser: (selectedUser) => {
+        const currentSelectedUser = get().selectedUser;
+        // Only clear messages if selecting a different user
+        if (!currentSelectedUser || currentSelectedUser._id !== selectedUser?._id) {
+            set({ selectedUser, messages: [] });
+        } else {
+            set({ selectedUser });
+        }
+    },
 
     setTypingStatus: (status) => {
         const { typingTimeout } = get();
 
-        // if already previous timeout is runnig first stop it 
         if (typingTimeout) {
             clearTimeout(typingTimeout);
         }
 
-        // update the current isTyping 
         set({ isTyping: status });
 
-        // if the user is typing then set timeout for 3 sec
         if (status) {
             const timeout = setTimeout(() => {
                 set({ isTyping: false });
             }, 3000);
-            // Reset typing status after 3 seconds of no activity MEans that after 3 sec of inactivity the stuatus will be set to false;
             set({ typingTimeout: timeout });
         }
     },
-
-
 
     sentMessages: async (messagesData) => {
         set({ isSendingImage: true })
         const { selectedUser, messages } = get();
 
-
         try {
-            console.log("Sending message to user:", selectedUser._id);
-            console.log("Message data:", messagesData);
-
             const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messagesData);
-            console.log("Server response:", res.data);
-
             set({ messages: [...messages, res.data] });
-
-
+            return res.data;
         } catch (error) {
             console.error("Error in sentMessages:", error.response?.data || error);
             toast.error(error.response?.data?.message || "Failed to send message");
-            throw error; // Re-throw to handle in component
+            throw error;
         } finally {
             set({ isSendingImage: false })
         }
     },
 
-    subscribeToMessages:()=>{
-        const {selectedUser}=get();
-        if(!selectedUser)return
+    subscribeToMessages: () => {
+        const { selectedUser } = get();
+        if (!selectedUser) return;
 
-        const socket=useAuthStore.getState().socket;
+        const socket = useAuthStore.getState().socket;
+        if (!socket?.connected) {
+            console.error("Socket not connected");
+            return;
+        }
 
-        //todo :optimize later
-        socket.on("newMessage",(newMessage)=>{
-            set({messages:[...get().messages,newMessage]})
-        })
+        // Remove any existing listeners first
+        socket.off("newMessage");
 
+        socket.on("newMessage", (newMessage) => {
+            const currentMessages = get().messages;
+            set({ messages: [...currentMessages, newMessage] });
+        });
     },
 
-    unsubscribesFromMessages:()=>{
-        const socket=useAuthStore.getState().socket
-
-        socket.off("newMessage")
+    unsubscribesFromMessages: () => {
+        const socket = useAuthStore.getState().socket;
+        if (socket?.connected) {
+            socket.off("newMessage");
+        }
     }
-
-
 }))

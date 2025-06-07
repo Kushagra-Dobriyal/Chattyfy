@@ -17,7 +17,7 @@ export const useAuthStore = create((set, get) => ({ //set is a function you use 
     isUpdatingProfile: false,
     isCheckingAuth: true,
     onlineUsers: [],
-    socket: null,
+    socket: null,// to be able to use the socket anywhere in the app
 
 
 
@@ -132,10 +132,10 @@ export const useAuthStore = create((set, get) => ({ //set is a function you use 
         });
 
         socket.connect();
-        set({ socket: socket });
+        set({ socket: socket });// to be able to use the socket anywhere in the app
 
-        socket.on("getOnlineUsers", (users) => {
-            set({ onlineUsers: users });
+        socket.on("getOnlineUsers", (usersIds) => {
+            set({ onlineUsers: usersIds });
         });
 
         // Clean up socket on unmount
@@ -152,7 +152,8 @@ export const useAuthStore = create((set, get) => ({ //set is a function you use 
             socket.disconnect();
             set({ socket: null, onlineUsers: [] });
         }
-    }
+    },
+
 
 
 }))

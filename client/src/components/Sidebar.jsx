@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import { useMessageStore } from '../store/useMessageStore'
 import SidebarSkeleton from '../components/skeletons/SidebarSkeleton.jsx'
 import { Users } from 'lucide-react';
@@ -7,11 +7,17 @@ import { useAuthStore } from '../store/useAuthStore';
 
 function Sidebar() {
   const { users, selectedUser, isLoadingUsers, getUsers, setSelectedUser } = useMessageStore();
-  const {onlineUsers} = useAuthStore();
+  const { onlineUsers } = useAuthStore();
+
+  const [onlyOnlineUser, setOnlyOnlineUser] = useState(false);
 
   useEffect(() => {
     getUsers()
   }, [getUsers])
+
+  const filterdUsers = onlyOnlineUser ? users.filter((user) => {
+    return onlineUsers.includes(user._id)
+  }) : users
 
 
   if (isLoadingUsers) return <SidebarSkeleton />
@@ -24,9 +30,22 @@ function Sidebar() {
           <span className='font-medium hidden lg:block'>Contacts</span>
         </div>
         {/* TODO: online filter toggle */}
+        <div className='mt-3 hdden lg:flex items-center gap-2' >
+          <label className='cursor-pointer flex items-center gap-2'>
+            <input
+              type='checkbox'
+              checked={onlyOnlineUser}
+              onChange={(e) => setOnlyOnlineUser(e.target.checked)}
+              className='checkbox checkbox-sm'
+            />
+            <span className='text-sm'>Show online only</span>
+          </label>
+          <span className='text-xs text-zinc-500'>({onlineUsers.length - 1}online)</span>
+        </div>
       </div>
+
       <div className='overflow-y-auto w-full py-3'>
-        {users.map((user) => (
+        {filterdUsers.map((user) => (
           <button
             key={user._id}
             onClick={() => setSelectedUser(user)}
@@ -53,8 +72,16 @@ function Sidebar() {
             </div>
           </button>
         ))}
-      </div>
 
+        {filterdUsers.length===0 && (
+          <div className='text-center bg-zinc-500 p-y'>
+            No online Users
+          </div>
+
+        )}
+
+
+      </div>
     </aside>
   )
 }

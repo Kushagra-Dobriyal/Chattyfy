@@ -8,6 +8,8 @@ function ChatHeader() {
     const { selectedUser, setSelectedUser, isTyping } = useMessageStore();
     const { onlineUsers } = useAuthStore()
 
+    if (!selectedUser) return null;
+
     return (
         <div className='w-full border-b border-base-300'>
             <div className='w-full py-3 px-4 flex items-center justify-between'>
@@ -23,7 +25,7 @@ function ChatHeader() {
                             {selectedUser.fullName}
                         </h1>
                         <p className='text-sm text-zinc-400'>
-                            {isTyping ? "Typing.." : selectedUser && onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
+                            {isTyping ? "Typing.." : onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
                         </p>
                     </div>
                 </div>

@@ -3,10 +3,7 @@ import Message from "../models/message.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import { getRecieverSocketId, io } from "../lib/socket.js";
 
-
-
 export const getUsersForSidebar = async (req, res) => {
-
   try {
     // our user id
     const loggedInUserId = req.user._id;
@@ -38,8 +35,6 @@ export const getMessages = async (req, res) => {
 
     // ===> $or - This is a MongoDB operator that means "match if ANY of these conditions are true"
 
-
-
     res.status(200).json(messages);
 
   } catch (error) {
@@ -47,8 +42,6 @@ export const getMessages = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
-
 
 export const sendMessage = async (req, res) => {
   try {
@@ -81,8 +74,6 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
 
-
-    // todo :realtime functionality goes here (Socket.io)
     //after saving the message in the db we directly send it to the user
     const receiverSocketId = getRecieverSocketId(receiverId)
     if (receiverSocketId) {
@@ -91,7 +82,6 @@ export const sendMessage = async (req, res) => {
 
     res.status(201).json(newMessage);
 
-
   } catch (error) {
     console.log("Error in messageController", error.message);
     res.status(500).json({
@@ -99,3 +89,50 @@ export const sendMessage = async (req, res) => {
     })
   }
 }
+
+export const updateMessage = async (req, res) => {
+    try {
+        const { id: messageId } = req.params;
+        const { deleteForSender, deleteForReciever } = req.body;
+        const userId = req.user._id;
+
+        const message = await Message.findById(messageId);
+        
+        if (!message) {
+            return res.status(404).json({ message: "Message not found" });
+        }
+
+        // Check if user is sender or receiver
+        if (message.senderId.toString() === userId.toString()) {
+            message.deleteForSender = deleteForSender;
+        } else if (message.receiverId.toString() === userId.toString()) {
+            message.deleteForReciever = deleteForReciever;
+        } else {
+            return res.status(403).json({ message: "Not authorized to update this message" });
+        }
+
+        // If both sender and receiver have deleted, remove the message completely
+        if (message.deleteForSender && message.deleteForReciever) {
+            await Message.findByIdAndDelete(messageId);
+            const receiverSocketId = getRecieverSocketId(message.receiverId);
+            if (receiverSocketId) {
+                io.to(receiverSocketId).emit("newMessage", { _id: messageId, message: "Message deleted successfully" });
+            }
+            return res.status(200).json({ message: "Message deleted successfully" });
+        }
+
+        await message.save();
+        
+        // Emit socket event for message update
+        const receiverSocketId = getRecieverSocketId(message.receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", message);
+        }
+
+        res.status(200).json(message);
+
+    } catch (error) {
+        console.log("Error in updateMessage controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
