@@ -203,6 +203,12 @@ export const fullDelete = async (req, res) => {
     // Delete the message
     await Message.findByIdAndDelete(messageId);
 
+    // Get receiver's socket ID and emit the update
+    const receiverSocketId = getRecieverSocketId(message.receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("messageDeleted", { messageId });
+    }
+
     res.status(200).json({ message: "Message deleted successfully" });
 
   } catch (error) {

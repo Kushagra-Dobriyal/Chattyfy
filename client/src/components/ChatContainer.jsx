@@ -12,7 +12,7 @@ import DeleteInterface from "./DeleteInterface.jsx"
 
 function ChatContainer() {
   const { getMessages, messages, isMessagesLoading, selectedUser, subscribeToMessages, unsubscribesFromMessages, deleteCheck, toggleDeleteCheck } = useMessageStore()
-  const { authUser } = useAuthStore();
+  const { authUser,socket } = useAuthStore();
   const messageEndRef = useRef(null);
   const [messageToDelete, setMessageToDelete] = useState(null);
 
@@ -33,6 +33,7 @@ function ChatContainer() {
     }
   }, [messages, deleteCheck]);
 
+
   // Handle messages and socket subscription
   useEffect(() => {
     if (!selectedUser?._id) return;
@@ -44,8 +45,19 @@ function ChatContainer() {
     fetchMessages();
     subscribeToMessages();
 
+    // Add listener for deleted messages
+    if (socket?.connected) {
+      socket.on("messageDeleted", ({ messageId }) => {
+        // Fetch messages again to get updated list
+        fetchMessages();
+      });
+    }
+
     return () => {
       unsubscribesFromMessages();
+      if (socket?.connected) {
+        socket.off("messageDeleted");
+      }
     }
   }, [selectedUser?._id, getMessages, subscribeToMessages, unsubscribesFromMessages])
 

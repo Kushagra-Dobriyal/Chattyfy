@@ -151,6 +151,7 @@ export const useMessageStore = create((set, get) => ({
             }
 
             const messId = message._id;
+            
             const response = await axiosInstance.delete(`/messages/fullDelete/${messId}`);
 
             if (response.status === 200) {
@@ -158,13 +159,6 @@ export const useMessageStore = create((set, get) => ({
                 set((state) => ({
                     messages: state.messages.filter(msg => msg._id !== messId)
                 }));
-
-                // Emit socket event for real-time update
-                const socket = useAuthStore.getState().socket;
-                if (socket?.connected) {
-                    socket.emit("messageDeleted", { messageId: messId });
-                }
-
                 get().toggleDeleteCheck();
             }
         } catch (error) {
