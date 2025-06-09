@@ -14,6 +14,7 @@ export const useMessageStore = create((set, get) => ({
     isTyping: false,
     typingTimeout: null,
     deleteCheck: false,
+    
 
     getUsers: async () => {
         set({ isLoadingUsers: true })
@@ -115,42 +116,60 @@ export const useMessageStore = create((set, get) => ({
 
     //deleting only one side
     deleteMessageFromMe: async (message) => {
-
         try {
-            if (message.senderId === get().authUser._id) {
-                const response = await axiosInstance.put(`/messages/partialDelete/${message._id}`, {
-                    deleteForSender: true
-                });
-                if (response.status === 200) {
-                    get().toggleDeleteCheck();
-                }
-            } else {
-                const response = await axiosInstance.put(`/messages/partialDelete/${message._id}`, {
-                    deleteForReciever: true
-                });
-                if (response.status === 200) {
-                    get().toggleDeleteCheck();
-                }
+            const authUser = useAuthStore.getState().authUser;
+            if (!authUser) {
+                toast.error("User not authenticated");
+                return;
+            }
+
+            const response = await axiosInstance.put(`/messages/partialDelete/${message._id}`, {
+                deleteForSender: message.senderId === authUser._id,
+                deleteForReciever: message.receiverId === authUser._id
+            });
+
+            if (response.status === 200) {
+                // Update messages state to remove the message from users view
+                set((state) => ({
+                    messages: state.messages.filter(msg => msg._id !== message._id)
+                }));
+                get().toggleDeleteCheck();
             }
         } catch (error) {
-            console.log("Error in DeleteInterFace", error)
-            toast.error("Error while deleting")
+            console.log("Error in DeleteInterFace", error);
+            toast.error("Error while deleting");
         }
     },
 
     // deleteinh from both the sides
-    deleteMessageFromAll: async () => {
+    deleteMessageFromAll: async (message) => {
         try {
-            const response = await axiosInstance.delete(`/messages/fullDelete/${message._id}`)
+            const authUser = useAuthStore.getState().authUser;
+            if (!authUser) {
+                toast.error("User not authenticated");
+                return;
+            }
+
+            const messId = message._id;
+            const response = await axiosInstance.delete(`/messages/fullDelete/${messId}`);
+
             if (response.status === 200) {
+                // Update messages state to remove the deleted message
+                set((state) => ({
+                    messages: state.messages.filter(msg => msg._id !== messId)
+                }));
+
+                // Emit socket event for real-time update
+                const socket = useAuthStore.getState().socket;
+                if (socket?.connected) {
+                    socket.emit("messageDeleted", { messageId: messId });
+                }
+
                 get().toggleDeleteCheck();
             }
-            set((state) => ({
-                messages: state.messages.filter(msg => msg._id !== message._id)
-            }));
         } catch (error) {
-            console.log("Error in DeleteInterFace", error)
-            toast.error("Error while deleting")
+            console.log("Error in DeleteInterFace", error);
+            toast.error("Error while deleting");
         }
     },
 

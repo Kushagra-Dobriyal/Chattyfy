@@ -5,17 +5,22 @@ import { useAuthStore } from '../store/useAuthStore';
 
 
 function DeleteInterface({ message }) {
+    const { toggleDeleteCheck, deleteMessageFromAll, deleteMessageFromMe } = useMessageStore();
+    const { authUser } = useAuthStore();
+    // const [deletable, SetDeletable] = useState(false);
 
-    const { toggleDeleteCheck, deleteCheck, deleteMessageFromAll, deleteMessageFromMe } = useMessageStore();
-    const { authUser } = useAuthStore()
-    const [deletable, SetDeletable] = useState(false)
+    const timeDiff = Math.abs(new Date() - new Date(message.createdAt));
+    const fiveMinutes = 5 * 60 * 1000;
+
+   
 
     const handleDeleteFromAll = () => {
-        deleteMessageFromAll(deletable);
+        deleteMessageFromAll(message);
+
     }
 
-    const handleDeleteFromMe = async (deletable) => {
-        deleteMessageFromMe(deletable);
+    const handleDeleteFromMe = () => {
+        deleteMessageFromMe(message);
     }
 
     return (
@@ -41,29 +46,24 @@ function DeleteInterface({ message }) {
 
                 <div className='flex justify-end gap-3 mt-4'>
                     <button
-                        onClick={toggleDeleteCheck}
                         className='btn btn-ghost'
-                    >
-                        Delete from Me
-                    </button>
-
-                    {deletable ? <button
-                        // TODO: Implement actual delete logic for current user
-                        className='btn btn-error'
                         onClick={handleDeleteFromMe}
                     >
                         Delete for Me
-                    </button> :
-                        < button
-                            className='btn btn-error'
-                            onClick={handleDeleteFromAll}
-                        >
-                            Delete for Everyone
-                        </button>
-                    }
+                    </button>
+
+                    <button
+                        className='btn btn-error'
+                        onClick={handleDeleteFromAll}
+                        disabled={!(timeDiff <= fiveMinutes) || !(message.senderId === authUser._id)}
+                    >
+                        Delete for Everyone
+                    </button>
+
+
                 </div>
             </div>
-        </div >
+        </div>
     )
 }
 

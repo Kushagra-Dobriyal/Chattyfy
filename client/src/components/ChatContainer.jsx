@@ -11,13 +11,10 @@ import toast from 'react-hot-toast'
 import DeleteInterface from "./DeleteInterface.jsx"
 
 function ChatContainer() {
-
-
   const { getMessages, messages, isMessagesLoading, selectedUser, subscribeToMessages, unsubscribesFromMessages, deleteCheck, toggleDeleteCheck } = useMessageStore()
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
   const [messageToDelete, setMessageToDelete] = useState(null);
-
 
   const handleCopy = (message) => {
     navigator.clipboard.writeText(message.text);
@@ -34,7 +31,7 @@ function ChatContainer() {
     if (messageEndRef.current && messages) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" })
     }
-  }, [messages])
+  }, [messages, deleteCheck]);
 
   // Handle messages and socket subscription
   useEffect(() => {
@@ -71,9 +68,9 @@ function ChatContainer() {
       <ChatHeader />
       <div className='flex-1 overflow-y-auto'>
         <div className='p-4 space-y-4'>
-          {deleteCheck ? <DeleteInterface message={messageToDelete}/> :
+          {deleteCheck ? <DeleteInterface message={messageToDelete} /> :
             messages.map((message) => (
-              <div key={message._id}
+              ((message.senderId === authUser._id ? !message.deleteForSender : !message.deleteForReciever) ? <div key={message._id}
                 className={`chat group ${message.senderId === authUser._id ? 'chat-end' : 'chat-start'}`}
               >
                 <div className='chat-image avatar'>
@@ -109,23 +106,13 @@ function ChatContainer() {
                     <Trash className='size-4' />
                   </button>
                 </div>
-              </div>
+              </div> : null)
             ))
           }
           <div ref={messageEndRef} />
         </div>
       </div>
       <MessageInput />
-
-      {deleteCheck && messageToDelete && (
-        <DeleteInterface
-          message={messageToDelete}
-          onClose={() => {
-            toggleDeleteCheck();
-            setMessageToDelete(null);
-          }}
-        />
-      )}
     </div>
   )
 }

@@ -94,52 +94,52 @@ export const sendMessage = async (req, res) => {
 
 
 
-export const updateMessage = async (req, res) => {
-  try {
-    const { id: messageId } = req.params;
-    const { deleteForSender, deleteForReciever } = req.body;
-    const userId = req.user._id;
+// export const updateMessage = async (req, res) => {
+//   try {
+//     const { id: messageId } = req.params;
+//     const { deleteForSender, deleteForReciever } = req.body;
+//     const userId = req.user._id;
 
-    const message = await Message.findById(messageId);
+//     const message = await Message.findById(messageId);
 
-    if (!message) {
-      return res.status(404).json({ message: "Message not found" });
-    }
+//     if (!message) {
+//       return res.status(404).json({ message: "Message not found" });
+//     }
 
-    // Check if user is sender or receiver
-    if (message.senderId.toString() === userId.toString()) {
-      message.deleteForSender = deleteForSender;
-    } else if (message.receiverId.toString() === userId.toString()) {
-      message.deleteForReciever = deleteForReciever;
-    } else {
-      return res.status(403).json({ message: "Not authorized to update this message" });
-    }
+//     // Check if user is sender or receiver
+//     if (message.senderId.toString() === userId.toString()) {
+//       message.deleteForSender = deleteForSender;
+//     } else if (message.receiverId.toString() === userId.toString()) {
+//       message.deleteForReciever = deleteForReciever;
+//     } else {
+//       return res.status(403).json({ message: "Not authorized to update this message" });
+//     }
 
-    // If both sender and receiver have deleted, remove the message completely
-    if (message.deleteForSender && message.deleteForReciever) {
-      await Message.findByIdAndDelete(messageId);
-      const receiverSocketId = getRecieverSocketId(message.receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("newMessage", { _id: messageId, message: "Message deleted successfully" });
-      }
-      return res.status(200).json({ message: "Message deleted successfully" });
-    }
+//     // If both sender and receiver have deleted, remove the message completely
+//     if (message.deleteForSender && message.deleteForReciever) {
+//       await Message.findByIdAndDelete(messageId);
+//       const receiverSocketId = getRecieverSocketId(message.receiverId);
+//       if (receiverSocketId) {
+//         io.to(receiverSocketId).emit("newMessage", { _id: messageId, message: "Message deleted successfully" });
+//       }
+//       return res.status(200).json({ message: "Message deleted successfully" });
+//     }
 
-    await message.save();
+//     await message.save();
 
-    // Emit socket event for message update
-    const receiverSocketId = getRecieverSocketId(message.receiverId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", message);
-    }
+//     // Emit socket event for message update
+//     const receiverSocketId = getRecieverSocketId(message.receiverId);
+//     if (receiverSocketId) {
+//       io.to(receiverSocketId).emit("newMessage", message);
+//     }
 
-    res.status(200).json(message);
+//     res.status(200).json(message);
 
-  } catch (error) {
-    console.log("Error in updateMessage controller: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
+//   } catch (error) {
+//     console.log("Error in updateMessage controller: ", error.message);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 
 
@@ -148,7 +148,6 @@ export const updateMessage = async (req, res) => {
 export const partialDelete = async (req, res) => {
   try {
     const { id: messageId } = req.params;
-    const { deleteForSender, deleteForReciever } = req.body;
     const userId = req.user._id;
 
     const message = await Message.findById(messageId);
@@ -159,9 +158,9 @@ export const partialDelete = async (req, res) => {
 
     // Check if user is sender or receiver
     if (message.senderId.toString() === userId.toString()) {
-      message.deleteForSender = deleteForSender;
+      message.deleteForSender = true;
     } else if (message.receiverId.toString() === userId.toString()) {
-      message.deleteForReciever = deleteForReciever;
+      message.deleteForReciever = true;
     } else {
       return res.status(403).json({ message: "Not authorized to update this message" });
     }
@@ -169,41 +168,46 @@ export const partialDelete = async (req, res) => {
     // If both sender and receiver have deleted, remove the message completely
     if (message.deleteForSender && message.deleteForReciever) {
       await Message.findByIdAndDelete(messageId);
-      const receiverSocketId = getRecieverSocketId(message.receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("newMessage", { _id: messageId, message: "Message deleted successfully" });
-      }
       return res.status(200).json({ message: "Message deleted successfully" });
     }
 
     await message.save();
 
-    // Emit socket event for message update
-    const receiverSocketId = getRecieverSocketId(message.receiverId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", message);
-    }
-
     res.status(200).json(message);
 
   } catch (error) {
-    console.log("Error in message controller", error);
+    console.log("Error in partialDelete controller:", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
+
+
 export const fullDelete = async (req, res) => {
   try {
-    const { messId } = req.params;
-    const message = await Message.findById(messId);
+    const { id: messageId } = req.params;
+    const userId = req.user._id;
+
+    const message = await Message.findById(messageId);
 
     if (!message) {
-      res.status(404).json({ message: "No such message was found" })
+      return res.status(404).json({ message: "No such message was found" });
     }
 
-    const response = await Message.findByIdAndDelete(messId);
+    // Check if user is authorized to delete this message
+    if (message.senderId.toString() !== userId.toString() && 
+        message.receiverId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Not authorized to delete this message" });
+    }
+
+    // Delete the message
+    await Message.findByIdAndDelete(messageId);
+
+    res.status(200).json({ message: "Message deleted successfully" });
 
   } catch (error) {
-    console.log("Error in message controller", error);
+    console.log("Error in fullDelete controller:", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
