@@ -92,59 +92,6 @@ export const sendMessage = async (req, res) => {
 
 
 
-
-
-// export const updateMessage = async (req, res) => {
-//   try {
-//     const { id: messageId } = req.params;
-//     const { deleteForSender, deleteForReciever } = req.body;
-//     const userId = req.user._id;
-
-//     const message = await Message.findById(messageId);
-
-//     if (!message) {
-//       return res.status(404).json({ message: "Message not found" });
-//     }
-
-//     // Check if user is sender or receiver
-//     if (message.senderId.toString() === userId.toString()) {
-//       message.deleteForSender = deleteForSender;
-//     } else if (message.receiverId.toString() === userId.toString()) {
-//       message.deleteForReciever = deleteForReciever;
-//     } else {
-//       return res.status(403).json({ message: "Not authorized to update this message" });
-//     }
-
-//     // If both sender and receiver have deleted, remove the message completely
-//     if (message.deleteForSender && message.deleteForReciever) {
-//       await Message.findByIdAndDelete(messageId);
-//       const receiverSocketId = getRecieverSocketId(message.receiverId);
-//       if (receiverSocketId) {
-//         io.to(receiverSocketId).emit("newMessage", { _id: messageId, message: "Message deleted successfully" });
-//       }
-//       return res.status(200).json({ message: "Message deleted successfully" });
-//     }
-
-//     await message.save();
-
-//     // Emit socket event for message update
-//     const receiverSocketId = getRecieverSocketId(message.receiverId);
-//     if (receiverSocketId) {
-//       io.to(receiverSocketId).emit("newMessage", message);
-//     }
-
-//     res.status(200).json(message);
-
-//   } catch (error) {
-//     console.log("Error in updateMessage controller: ", error.message);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// };
-
-
-
-
-
 export const partialDelete = async (req, res) => {
   try {
     const { id: messageId } = req.params;

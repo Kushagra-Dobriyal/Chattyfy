@@ -1,12 +1,18 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useMessageStore } from '../store/useMessageStore.js'
 import { useAuthStore } from "../store/useAuthStore.js";
 import avatar from '../assets/avatar.png'
 import { X } from 'lucide-react'
 
 function ChatHeader() {
-    const { selectedUser, setSelectedUser, isTyping } = useMessageStore();
-    const { onlineUsers } = useAuthStore()
+    const { selectedUser, setSelectedUser, recieverTypingStatus,setRecieverTypingStatus } = useMessageStore();
+    const { onlineUsers } = useAuthStore();
+    const componentRef = useRef(null);
+
+    useEffect(() => {
+        const cleanup = setRecieverTypingStatus();
+        return cleanup;
+    }, []);
 
     if (!selectedUser) return null;
 
@@ -21,12 +27,10 @@ function ChatHeader() {
                     />
 
                     <div className='flex flex-col'>
-                        <h1 className='text-lg font-semibold'>
-                            {selectedUser.fullName}
-                        </h1>
-                        <p className='text-sm text-zinc-400'>
-                            {isTyping ? "Typing.." : onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
-                        </p>
+                        <span className='font-medium'>{selectedUser.fullName}</span>
+                        <span className='text-sm text-base-content/70'>
+                            {recieverTypingStatus ? "Typing..." : onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
+                        </span>
                     </div>
                 </div>
 
@@ -38,7 +42,7 @@ function ChatHeader() {
                 </button>
             </div>
         </div>
-    )
+    );
 }
 
-export default ChatHeader
+export default ChatHeader;

@@ -3,6 +3,7 @@ import { axiosInstance } from "../lib/axios.js"
 import toast from "react-hot-toast";
 import { ArrowUp, CopySlash, Flashlight } from "lucide-react";
 import { io } from 'socket.io-client'
+import { useMessageStore } from "../store/useMessageStore.js"
 
 const BASE_URL = "http://localhost:3000"
 

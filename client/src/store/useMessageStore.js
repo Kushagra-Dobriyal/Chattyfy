@@ -11,9 +11,13 @@ export const useMessageStore = create((set, get) => ({
     isLoadingUsers: true,
     isMessagesLoading: false,
     isSendingImage: false,
-    isTyping: false,
-    typingTimeout: null,
     deleteCheck: false,
+    typingTimeout: null,
+    selectedUserSocketId:null,
+    UserSocketId:null,
+    recieverTypingStatus:false,
+    typingUsers:[],
+
     
 
     getUsers: async () => {
@@ -48,24 +52,10 @@ export const useMessageStore = create((set, get) => ({
         } else {
             set({ selectedUser });
         }
+
     },
 
-    setTypingStatus: (status) => {
-        const { typingTimeout } = get();
-
-        if (typingTimeout) {
-            clearTimeout(typingTimeout);
-        }
-
-        set({ isTyping: status });
-
-        if (status) {
-            const timeout = setTimeout(() => {
-                set({ isTyping: false });
-            }, 3000);
-            set({ typingTimeout: timeout });
-        }
-    },
+   
 
     sentMessages: async (messagesData) => {
         set({ isSendingImage: true })
@@ -166,5 +156,102 @@ export const useMessageStore = create((set, get) => ({
             toast.error("Error while deleting");
         }
     },
+
+    setTyping: (status) => {
+        const { typingTimeout } = get();
+        const socket = useAuthStore.getState().socket;
+        const { selectedUser } = get();
+        const authUser = useAuthStore.getState().authUser;
+
+        console.log("Typing status changed to:", status);
+
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+            console.log("Cleared previous timeout");
+        }
+
+        set({ isTyping: status });
+        
+        if (status) {
+           if(socket?.connected && selectedUser?._id){
+            socket.emit("typing", {
+                receiverId: selectedUser._id,
+                senderId: authUser._id,
+                senderSocketId: socket.id
+            });
+            console.log("Emitted typing event to:", selectedUser._id);
+           }
+
+            const timeout = setTimeout(() => {
+                set({ isTyping: false });
+                if (socket?.connected && selectedUser?._id) {
+                    socket.emit("stopTyping", { 
+                        receiverId: selectedUser._id,
+                        senderId: authUser._id,
+                        senderSocketId: socket.id
+                    });
+                    console.log("Emitted stop typing event to:", selectedUser._id);
+                }
+            }, 3000);
+            set({ typingTimeout: timeout });
+            console.log("New timeout set for 3 seconds");
+        } else {
+            console.log("Typing stopped");
+        }
+    },
+
+    setRecieverTypingStatus: () => {
+        const socket = useAuthStore.getState().socket;
+        
+        if (!socket) return;
+
+        socket.on("typing", ({ senderSocketId }) => {
+            console.log("Receiver received typing event from:", senderSocketId);
+            set({ recieverTypingStatus: true });
+        });
+
+        socket.on("stopTyping", ({ senderSocketId }) => {
+            console.log("Receiver received stop typing event from:", senderSocketId);
+            set({ recieverTypingStatus: false });
+        });
+
+        // Cleanup function to remove listeners
+        return () => {
+            socket.off("typing");
+            socket.off("stopTyping");
+        };
+    },
+    setTypingUsers: () => {
+        const socket = useAuthStore.getState().socket;
+        if (!socket) return;
+
+        console.log("Setting up typing listeners");
+
+        socket.on("typing", ({ senderSocketId, senderId }) => {
+            console.log("Received typing event from:", senderId);
+            set((state) => {
+                if (!state.typingUsers.includes(senderId)) {
+                    return {
+                        typingUsers: [...state.typingUsers, senderId]
+                    };
+                }
+                return state;
+            });
+        });
+
+        socket.on("stopTyping", ({ senderSocketId, senderId }) => {
+            console.log("Received stop typing event from:", senderId);
+            set((state) => ({
+                typingUsers: state.typingUsers.filter(user => user !== senderId)
+            }));
+        });
+
+        return () => {
+            console.log("Cleaning up typing listeners");
+            socket.off("typing");
+            socket.off("stopTyping");
+        };
+    }
+
 
 }))

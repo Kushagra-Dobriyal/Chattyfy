@@ -7,13 +7,19 @@ import toast from 'react-hot-toast'
 function MessageInput() {
     const [text, setText] = useState("");
     const [imagePreview, setImagePreview] = useState(null);
-    const { sentMessages, setTypingStatus, typingTimeout, selectedUser, isSendingImage } = useMessageStore();
+    const { sentMessages, setTypingStatus, typingTimeout, selectedUser, isSendingImage, setTyping} = useMessageStore();
 
     useEffect(() => {
         // Clear image preview when selected user changes
         setImagePreview(null);
         setText("");
     }, [selectedUser]);
+
+
+    const userTypingMessage = () => {
+       setTyping(true);
+    }
+    
 
     const removeImage = () => {
         setImagePreview(null);
@@ -108,12 +114,8 @@ function MessageInput() {
                         value={text}
                         onChange={(e) => {
                             setText(e.target.value);
+                            userTypingMessage();
                         }}
-                    // onKeyDown={(e) => {
-                    //     if (e.key !== 'Enter') {
-                    //         setTypingStatus(true);
-                    //     }
-                    // }}
                     />
                     <label
                         htmlFor="image-upload"

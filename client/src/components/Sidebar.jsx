@@ -6,10 +6,14 @@ import avatar from '../assets/avatar.png'
 import { useAuthStore } from '../store/useAuthStore';
 
 function Sidebar() {
-  const { users, selectedUser, isLoadingUsers, getUsers, setSelectedUser } = useMessageStore();
+  const { users, selectedUser, isLoadingUsers, getUsers, setSelectedUser,typingUsers, setTypingUsers } = useMessageStore();
   const { onlineUsers } = useAuthStore();
 
   const [onlyOnlineUser, setOnlyOnlineUser] = useState(false);
+
+  useEffect(()=>{
+    setTypingUsers
+  })
 
   useEffect(() => {
     getUsers()
@@ -29,7 +33,6 @@ function Sidebar() {
           <Users className='size-6' />
           <span className='font-medium hidden lg:block'>Contacts</span>
         </div>
-        {/* TODO: online filter toggle */}
         <div className='mt-3 hdden lg:flex items-center gap-2' >
           <label className='cursor-pointer flex items-center gap-2'>
             <input
@@ -67,7 +70,7 @@ function Sidebar() {
             <div className='hidden lg:block text-left min-w-0'>
               <div className='font-medium truncate'>{user.fullName}</div>
               <div className='text-sm text-zinc-400'>
-                {onlineUsers.includes(user._id) ? "Online" : "Offline"}
+                {typingUsers.includes(user._id)?"Typing": onlineUsers.includes(user._id) ? "Online" : "Offline"}
               </div>
             </div>
           </button>
