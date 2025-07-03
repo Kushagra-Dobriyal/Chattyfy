@@ -133,7 +133,7 @@ export const useAuthStore = create((set, get) => ({ //set is a function you use 
         });
 
         socket.connect();
-        set({ socket: socket });// to be able to use the socket anywhere in the app
+        set({ socket: socket }); // to be able to use the socket anywhere in the app
 
         socket.on("getOnlineUsers", (usersIds) => {
             set({ onlineUsers: usersIds });

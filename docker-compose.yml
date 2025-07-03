@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  server:
+    build: ./server
+    ports:
+      - "5000:3000"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    # Add more environment variables as needed
+    # volumes:
+    #   - ./server:/app
+
+  client:
+    build: ./client
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    # Add more environment variables as needed
+    # volumes:
+    #   - ./client:/app
+    # If your client needs to talk to the server, set the API URL to http://server:3000 
