@@ -52,5 +52,5 @@ jobs:
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "
             cd Chattyfy
-            docker-compose up -d --build
+            docker compose up -d --build
           "
