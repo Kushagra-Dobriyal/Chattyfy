@@ -22,20 +22,7 @@ jobs:
           echo "${{ secrets.EC2_KEY }}" > key.pem
           chmod 600 key.pem
 
-      # Optional: Create .env file for server (add more variables as needed)
-      - name: Prepare .env for server
-        run: |
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" > .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> .env
-          echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> .env
-
-      # Optional: Copy .env to EC2 server directory
-      - name: Copy .env to EC2
-        run: |
-          scp -i key.pem -o StrictHostKeyChecking=no .env $EC2_USER@$EC2_HOST:/home/$EC2_USER/Chattyfy/server/.env
-
-      - name: Deploy to EC2
+      - name: Deploy to EC2 (clone or pull)
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "
             if [ ! -d Chattyfy ]; then
@@ -43,5 +30,27 @@ jobs:
             fi
             cd Chattyfy
             git pull
+          "
+
+      - name: Ensure server directory exists
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "mkdir -p /home/$EC2_USER/Chattyfy/server"
+
+      - name: Prepare .env for server
+        run: |
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" > .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> .env
+          echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> .env
+          echo "CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}" >> .env
+
+      - name: Copy .env to EC2
+        run: |
+          scp -i key.pem -o StrictHostKeyChecking=no .env $EC2_USER@$EC2_HOST:/home/$EC2_USER/Chattyfy/server/.env
+
+      - name: Start Docker Compose
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "
+            cd Chattyfy
             docker-compose up -d --build
           "
