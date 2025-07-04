@@ -5,7 +5,7 @@ import { ArrowUp, CopySlash, Flashlight } from "lucide-react";
 import { io } from 'socket.io-client'
 import { useMessageStore } from "../store/useMessageStore.js"
 
-const BASE_URL = "http://localhost:3000"
+const BASE_URL = "http://server:3000/api"
 
 export const useAuthStore = create((set, get) => ({ //set is a function you use to update the state.
 
