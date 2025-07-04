@@ -17,7 +17,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));  //inc the limit
 app.use(cookieParser());
 
 app.use(cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", "http://localhost:5000"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization","X-Requested-With"] //the field is use for AJAX requestion 
@@ -31,7 +31,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 //These two route classes can be implemented here too but for better code structure we will mwke it int different folder as Routes...
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
     connectDB();
 }); 
