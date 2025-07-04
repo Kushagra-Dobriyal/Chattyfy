@@ -1,0 +1,47 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Add SSH key
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      # Optional: Create .env file for server (add more variables as needed)
+      - name: Prepare .env for server
+        run: |
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" > .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> .env
+          echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> .env
+
+      # Optional: Copy .env to EC2 server directory
+      - name: Copy .env to EC2
+        run: |
+          scp -i key.pem -o StrictHostKeyChecking=no .env $EC2_USER@$EC2_HOST:/home/$EC2_USER/Chattyfy/server/.env
+
+      - name: Deploy to EC2
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "
+            if [ ! -d Chattyfy ]; then
+              git clone https://github.com/${{ github.repository }}.git Chattyfy
+            fi
+            cd Chattyfy
+            git pull
+            docker-compose up -d --build
+          "
