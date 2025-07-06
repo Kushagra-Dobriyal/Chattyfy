@@ -87,6 +87,7 @@ jobs:
             --restart unless-stopped \
             --network chattyfy-net \
             -e NODE_ENV=production \
+            -e PORT=3000 \
             -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
             -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
             -e CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }} \
