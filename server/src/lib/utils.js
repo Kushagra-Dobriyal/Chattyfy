@@ -11,7 +11,7 @@ export const generateToken = (userId, res) => {
         sameSite: "lax",
         secure: false, // Set to false for local development
         path: "/",
-        domain: "localhost"
+        domain: process.env.NODE_ENV === 'production' ? undefined : "localhost"
     });
 
     return token;
