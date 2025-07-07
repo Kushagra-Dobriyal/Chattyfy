@@ -5,7 +5,7 @@ import { ArrowUp, CopySlash, Flashlight } from "lucide-react";
 import { io } from 'socket.io-client'
 import { useMessageStore } from "../store/useMessageStore.js"
 
-const BASE_URL = "http://chattyfy-backend:3000/api"
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api"
 
 export const useAuthStore = create((set, get) => ({ //set is a function you use to update the state.
 
