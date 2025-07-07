@@ -97,7 +97,7 @@ jobs:
           
           # Run frontend container
           docker run -d \
-            -p 5000:5000 \
+            -p 5000:80 \
             --name chattyfy-frontend \
             --restart unless-stopped \
             --network chattyfy-net \
