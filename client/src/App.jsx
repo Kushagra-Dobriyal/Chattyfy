@@ -18,8 +18,6 @@ function App() {
   const { theme } = useThemeStore();
 
 
-
-
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
@@ -42,7 +40,7 @@ function App() {
         <Route path="/" element={authUser?._id ? <HomePage /> : <Navigate to="/login" />} />
         <Route path='/signup' element={!authUser?._id ? <SignUpPage /> : <Navigate to="/" />} />
         <Route path='/login' element={!authUser?._id ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path='/settings' element={<SettingsPage />} />
+        <Route path='/settings' element={<SettingsPage/>} />
         <Route path='/profile' element={authUser?._id ? <ProfilePage /> : <Navigate to="/login" />} />
       </Routes>
       <Toaster />
